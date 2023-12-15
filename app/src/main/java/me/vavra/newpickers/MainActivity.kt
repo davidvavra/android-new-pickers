@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { shareLinkNew() }) {
                             Text(text = "Share link (new)")
                         }
+                        Text(text = "Selected package name: ${ShareReceiver.selectedSharesheetPackageName}")
                     }
                 }
             }
@@ -84,7 +85,10 @@ class MainActivity : ComponentActivity() {
     private fun shareLinkOld() {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "https://gdg.community.dev/events/details/google-gdg-bishkek-presents-devfest-bishkek-2023/")
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "https://gdg.community.dev/events/details/google-gdg-bishkek-presents-devfest-bishkek-2023/"
+            )
             type = "text/plain"
         }
         startActivity(sendIntent)
@@ -93,13 +97,26 @@ class MainActivity : ComponentActivity() {
     private fun shareLinkNew() {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "https://gdg.community.dev/events/details/google-gdg-bishkek-presents-devfest-bishkek-2023/")
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "https://gdg.community.dev/events/details/google-gdg-bishkek-presents-devfest-bishkek-2023/"
+            )
             putExtra(Intent.EXTRA_TITLE, "DevFest Bishkek 2023")
             type = "text/plain"
         }
-        val shareIntent = Intent.createChooser(sendIntent, null).apply {
+        val shareReceiver = PendingIntent.getBroadcast(
+            this, 42,
+            Intent(this, ShareReceiver::class.java),
+            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val shareIntent = Intent.createChooser(sendIntent, null, shareReceiver.intentSender).apply {
             putExtra(Intent.EXTRA_INITIAL_INTENTS, listOf(intent).toTypedArray())
-            val excludedComponentNames = arrayOf(ComponentName("com.google.android.apps.docs", "com.google.android.apps.docs.common.shareitem.UploadMenuActivity"))
+            val excludedComponentNames = arrayOf(
+                ComponentName(
+                    "com.google.android.apps.docs",
+                    "com.google.android.apps.docs.common.shareitem.UploadMenuActivity"
+                )
+            )
             putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponentNames)
         }
         if (Build.VERSION.SDK_INT >= 34) {
